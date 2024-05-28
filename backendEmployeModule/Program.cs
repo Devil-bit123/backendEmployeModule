@@ -1,4 +1,6 @@
 using backendEmployeModule.Models;
+using backendEmployeModule.Services.Contract;
+using backendEmployeModule.Services.Implementation;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +14,9 @@ builder.Services.AddDbContext<BackendEmployesModuleContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("connectionServer"));
 });
+
+builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+builder.Services.AddScoped<IEmployeService, EmployeService>();
 
 var app = builder.Build();
 
