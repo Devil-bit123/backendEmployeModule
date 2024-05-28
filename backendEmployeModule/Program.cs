@@ -10,7 +10,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<BackendEmployesModuleContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("connectionServer");
+    options.UseSqlServer(builder.Configuration.GetConnectionString("connectionServer"));
 });
 
 var app = builder.Build();
