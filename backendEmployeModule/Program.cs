@@ -2,6 +2,8 @@ using backendEmployeModule.Models;
 using backendEmployeModule.Services.Contract;
 using backendEmployeModule.Services.Implementation;
 using Microsoft.EntityFrameworkCore;
+using backendEmployeModule.Utilities;
+using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +19,9 @@ builder.Services.AddDbContext<BackendEmployesModuleContext>(options =>
 
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddScoped<IEmployeService, EmployeService>();
+
+// Aquí especificamos explícitamente el ensamblado que contiene los perfiles de AutoMapper.
+builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
 var app = builder.Build();
 
