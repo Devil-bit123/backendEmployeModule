@@ -8,6 +8,7 @@ namespace backendEmployeModule.Services.Contract
         Task<Employe> addEmploye(Employe employe);
         Task <bool> updateEmploye(Employe employe);
         Task <bool> deleteEmploye(Employe employe);
+        Task<List<Employe>> GetEmployeDatesReport(DateTime gte, DateTime lte);
 
     }
 }
