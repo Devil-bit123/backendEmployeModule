@@ -94,6 +94,26 @@ namespace backendEmployeModule.Services.Implementation
 
                 throw ex;
             }
+
         }
+
+
+        public async Task<List<Employe>> GetEmployeDatesReport(DateTime gte, DateTime lte)
+        {
+            try
+            {
+                List<Employe> employes = new List<Employe>();
+                employes = await _backendEmployesModuleContext.Employes.Include(d => d.IdDeptNavigation).Where(e=>e.ContractDate >= gte && e.ContractDate<=lte) .ToListAsync();
+                return employes;
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+        }
+
+
+
     }
 }
