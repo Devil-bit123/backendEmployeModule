@@ -39,6 +39,10 @@ namespace backendEmployeModule.Utilities
             #endregion
 
 
+            #region filter
+            CreateMap<filter, filterDTO>().ReverseMap();
+            #endregion
+
         }
     }
 }
