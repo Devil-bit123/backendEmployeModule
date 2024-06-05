@@ -6,7 +6,7 @@ a backend module made in ASP net core to serve the frontend application
 
 ## Installation
 
-Install EvalSis with git clone
+Install backendEmployeModule with git clone
 
 ```bash
   git clone https://github.com/Devil-bit123/backendEmployeModule.git
