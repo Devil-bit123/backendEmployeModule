@@ -55,6 +55,10 @@ builder.Services.AddCors(options =>
 
 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
+
+
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -154,8 +158,9 @@ app.MapPut("/employes/update/{idEmploye}", async (
     find.Email = employe.Email;
     find.Pay = employe.Pay;
     find.ContractDate = employe.ContractDate;
+    find.IdDept = employe.IdDept;
 
-    var response = await _employeService.updateEmploye(find);
+    var response = await _employeService.updateEmploye(employe);
 
     if (response)
     {
@@ -235,7 +240,7 @@ app.MapPost("/employes/report", async (
         worksheet.Cells[1, 7].Value = "Department";
 
         // Aplicar estilos a los encabezados
-        using (var range = worksheet.Cells[1, 1, 1, 4])
+        using (var range = worksheet.Cells[1, 1, 1, 7])
         {
             range.Style.Font.Bold = true;
             range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
@@ -267,19 +272,115 @@ app.MapPost("/employes/report", async (
         return Results.File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Empleados.xlsx");
     }
 
+});
 
 
 
-    //if (employesDTO != null)
-    //{
-    //    return Results.Ok(employesDTO);
-    //}
-    //else
-    //{
-    //    return Results.NotFound();
-    //}
+app.MapPost("/employes/graphic", async (
+    HttpContext context,
+    IEmployeService _employeService,
+    IMapper _mapper
+    ) =>
+{
+    // Leer el cuerpo de la solicitud
+    string requestBody;
+    using (var reader = new StreamReader(context.Request.Body))
+    {
+        requestBody = await reader.ReadToEndAsync();
+    }
+
+    try
+    {
+        // Parsear el cuerpo de la solicitud como JSON
+        var requestData = JsonConvert.DeserializeObject<filter>(requestBody);
+
+        // Validar los datos del cuerpo de la solicitud
+        if (requestData == null || string.IsNullOrEmpty(requestData.gte) || string.IsNullOrEmpty(requestData.lte))
+        {
+            return Results.BadRequest("Los parámetros gte y lte son requeridos.");
+        }
 
 
+        if(requestData != null && requestData.is_download == true)
+        {
+
+            var employes = await _employeService.GetEmployeGraphicssReport(requestData);
+            var employesDTO = _mapper.Map<List<EmployeDTO>>(employes);
+
+            using (var package = new ExcelPackage())
+            {
+                var worksheet = package.Workbook.Worksheets.Add("Empleados");
+
+                // Configurar encabezados
+                worksheet.Cells[1, 1].Value = "ID";
+                worksheet.Cells[1, 2].Value = "Name";
+                worksheet.Cells[1, 3].Value = "Last name";
+                worksheet.Cells[1, 4].Value = "Email";
+                worksheet.Cells[1, 5].Value = "Pay";
+                worksheet.Cells[1, 6].Value = "Contract Date";
+                worksheet.Cells[1, 7].Value = "Department";
+
+                // Aplicar estilos a los encabezados
+                using (var range = worksheet.Cells[1, 1, 1, 7])
+                {
+                    range.Style.Font.Bold = true;
+                    range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    range.Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+                }
+
+                // Llenar los datos de empleados
+                for (int i = 0; i < employesDTO.Count; i++)
+                {
+                    var employe = employesDTO[i];
+                    worksheet.Cells[i + 2, 1].Value = employe.Id;
+                    worksheet.Cells[i + 2, 2].Value = employe.Name;
+                    worksheet.Cells[i + 2, 3].Value = employe.LastName;
+                    worksheet.Cells[i + 2, 4].Value = employe.Email;
+                    worksheet.Cells[i + 2, 5].Value = employe.Pay;
+                    worksheet.Cells[i + 2, 6].Value = employe.ContractDate;
+                    worksheet.Cells[i + 2, 7].Value = employe.NameDept;
+                }
+
+                worksheet.Cells.AutoFitColumns();
+
+                // Guardar el archivo en un MemoryStream
+                var stream = new MemoryStream();
+                package.SaveAs(stream);
+                stream.Position = 0;
+                string fileName = "Employes_resport_from_"+requestData.gte+"_to_"+ requestData.lte+"_.xlsx";
+
+                // Devolver el archivo como una respuesta
+                return Results.File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+
+
+            }
+
+        }
+        else
+        {
+            // Lógica de negocio aquí, por ejemplo, obtener datos del servicio de empleados
+            var employes = await _employeService.GetEmployeGraphicssReport(requestData);
+            var employesDTO = _mapper.Map<List<EmployeDTO>>(employes);
+
+            // Devolver los datos procesados
+            return Results.Ok(employesDTO);
+        }
+        
+
+
+
+       
+    }
+    catch (JsonException ex)
+    {
+        return Results.BadRequest($"Error al parsear el JSON: {ex.Message}");
+    }
+
+
+    catch (FormatException ex)
+    {
+        return Results.BadRequest($"Error en el formato de fechas: {ex.Message}");
+    }
 });
 
 
